@@ -1,17 +1,20 @@
 
 import subprocess, re, time, netmiko
 from netmiko import ConnectHandler
-from netmiko.ssh_exception import NetMikoTimeoutException
-from netmiko.ssh_exception import SSHException
-from netmiko.ssh_exception import AuthenticationException
+from netmiko.exceptions import NetMikoTimeoutException
+from netmiko.exceptions import SSHException
+from netmiko.exceptions import AuthenticationException
 from netmiko import SCPConn
 from datetime import datetime
+
 #Important parameters that can be changed and controlled from here#
 ip_list = ['192.168.1.179', '192.168.1.178']
+
 #Cisco IOS 2801 Data
 new_ios_2801 = "c2801-ipvoice_ivs-mz.150-1.M7.bin"
 new_ios_2801_size = "41735808"
 new_ios_2801_md5 = "66c50292167f2b1c1ccd9ead3d5a5db4"
+
 #Cisco IOS 2811 Data
 new_ios_2811 = "c2800nm-ipvoice_ivs-mz.151-2.T1.bin"
 new_ios_2811_size = "51707860"
@@ -24,17 +27,20 @@ auto_copy_to_flash = "Yes"
 auto_change_boot_sequence ="Yes"
 auto_reload = "Yes"
 #########################################
+
 #Creating the CSV files for pre and post upgrade#
 #clearing the old data from the CSV file and writing the headers
 f = open("pre_upgrade.csv", "w+")
 f.write("IP Address, Hostname, Uptime, Current_Version, Current_Image, Serial_Number, Device_Model, Device_Memory")
 f.write("\n")
 f.close()
+
 #clearing the old data from the CSV file and writing the headers
 f = open("post_upgrade.csv", "w+")
 f.write("IP Address, Hostname, Uptime, Current_Version, Current_Image, Serial_Number, Device_Model, Device_Memory")
 f.write("\n")
 f.close()
+
 #clearing the old data from the logs file and writing the headers
 f = open("logs.txt", "w+")
 f.close()
@@ -86,9 +92,11 @@ def preupgrade():
                 
         # execute show version on router and save output to output object    
         sh_ver_output = net_connect.send_command('show version')   
+        
         #finding hostname in output using regular expressions
         regex_hostname = re.compile(r'(\S+)\suptime')
         hostname = regex_hostname.findall(sh_ver_output)
+        
         #finding uptime in output using regular expressions
         regex_uptime = re.compile(r'\S+\suptime\sis\s(.+)')
         uptime = regex_uptime.findall(sh_ver_output)
@@ -99,12 +107,15 @@ def preupgrade():
         #finding version in output using regular expressions
         regex_version = re.compile(r'Cisco\sIOS\sSoftware.+Version\s([^,]+)')
         version = regex_version.findall(sh_ver_output)
+        
         #finding serial in output using regular expressions
         regex_serial = re.compile(r'Processor\sboard\sID\s(\S+)')
         serial = regex_serial.findall(sh_ver_output)
+        
         #finding ios image in output using regular expressions
         regex_ios = re.compile(r'System\simage\sfile\sis\s"([^ "]+)')
         ios = regex_ios.findall(sh_ver_output)
+        
         #finding model in output using regular expressions
         regex_model = re.compile(r'[Cc]isco\s(\S+).*memory.')
         model = regex_model.findall(sh_ver_output)
