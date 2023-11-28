@@ -1,58 +1,68 @@
+import os
 import netmiko
-from netmiko import  ConnectHandler
-import subprocess
+from netmiko import ConnectHandler
+import logging
+import getpass
 
-def Username():
-    Posistion_Counter = 0
-    Result = subprocess.getoutput("whoami")
-    for words in Result:
-        if words =="\\":
-            Position = Posistion_Counter
-            break
-        Posistion_Counter +=1
-    return Result[Position + 1: ]
+# Configure logging
+logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
-Local_computer_Username = Username()
+def get_username():
+    result = os.popen("name of local computer").read().strip()
+    username = result.split('\\')[-1]
+    return username
 
-List_of_Switches = []
-Number_of_Switches = int(input("how many switches? : "))
+local_computer_username = get_username()
 
-for switch in range(1,Number_of_Switches +1) :
-    Ask = input("Enter switch number " + str(switch) + ":")
-    List_of_Switches.append(Ask)            
+list_of_switches = []
+number_of_switches = int(input("How many switches? : "))
 
-User = input("What is user: ")
-Pass = input("What is PSWD: ")
+for switch in range(1, number_of_switches + 1):
+    ask = input("Enter switch number " + str(switch) + ": ")
+    list_of_switches.append(ask)
 
-for switches in List_of_Switches:
+user = input("What is the username: ")
+password = getpass.getpass("What is the password: ")
 
-    Network_Device = {"host": switches,
-                  "username": User,
-                  "password": Pass,
-                  "device_type": "cisco_ios"
-                  }
+# Log user input
+logging.info(f"Username: {user}, Switches: {list_of_switches}")
 
-Connect_to_Device = ConnectHandler(**Network_Device)
+for switch in list_of_switches:
+    network_device = {
+        "host": switch,
+        "username": user,
+        "password": password,
+        "device_type": "cisco_ios"
+    }
 
-Connect_to_Device.enable()
+    # Log connection attempt
+    logging.info(f"Connecting to {switch} with username {user}")
 
-Lst_of_Commands = ["show run | i hostname",
-                    "show ver",
-                    ]
+    try:
+        connect_to_device = ConnectHandler(**network_device)
+        connect_to_device.enable()
 
-for command in Lst_of_Commands:
-    output = Connect_to_Device.send_command(command)
+        list_of_commands = ["show run | i hostname", "show ver"]
 
-    with open("C:\\Users\\" +Local_computer_Username+ "\\Desktop\\scrpt\\config_test.text","a") as f:
-        f.write("\n")
-        f.write(switches + "#" + command)
-        f.write("\n")
-        f.write(Connect_to_Device.send_command(command))
-        f.write("\n")
-    with open("C:\\Users\\" +Local_computer_Username+ "\\Desktop\\scrpt\\config_test.text","a") as f:
-        f.write(switches + "#")
-        f.write("\n"*3)
-        f.write("\nEND of this device/END of this device/END of this device"*4)
-        f.write("\n"*3)
+        with open(f"/home/{local_computer_username}/directory_to_config.txt", "a") as f:
+            f.write("\n")
+            f.write(switch + "#" + str(list_of_commands))
+            f.write("\n")
+            for command in list_of_commands:
+                output = connect_to_device.send_command(command)
+                f.write(output)
+                f.write("\n")
+
+            f.write(switch + "#")
+            f.write("\n" * 3)
+            f.write("\nEND of this device/END of this device/END of this device" * 4)
+            f.write("\n" * 3)
+
+        print(f"\nConfiguration saved for {switch}")
+
+    except Exception as e:
+        # Log connection error
+        logging.error(f"Failed to connect to {switch}: {str(e)}")
+        print(f"\nFailed to connect to {switch}")
 
 print("\nComplete")
