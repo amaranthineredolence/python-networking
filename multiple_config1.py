@@ -1,7 +1,7 @@
 from netmiko import ConnectHandler
 from getpass import getpass 
-from netmiko.ssh_exception import NetMikoTimeoutException
-from netmiko.ssh_exception import NetMikoAuthenticationException
+from netmiko.exceptions import NetMikoTimeoutException
+from netmiko.exceptions import NetMikoAuthenticationException
 from paramiko.ssh_exception import SSHException
 
 IP_LIST = open('18_routers')
