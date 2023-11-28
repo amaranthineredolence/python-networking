@@ -4,7 +4,8 @@ from netmiko.exceptions import NetMikoTimeoutException
 from netmiko.exceptions import NetMikoAuthenticationException
 from paramiko.ssh_exception import SSHException
 
-IP_LIST = open('18_routers')
+#txt file named "switch_ips"
+IP_LIST = open('switch_ips')
 for IP in IP_LIST:
     RTR = {
         'device_type': 'cisco_ios',
@@ -13,7 +14,7 @@ for IP in IP_LIST:
         'password': 'admin',
     }
 
-    print ('\n Connecting to the Router ' + IP.strip() + '\n')
+    print ('\n Connecting to the Switch ' + IP.strip() + '\n')
     try:
         net_connect = ConnectHandler(**RTR)
     except NetMikoTimeoutException:
@@ -38,6 +39,7 @@ for IP in IP_LIST:
     output = net_connect.send_command('show ip int brief')
     print(output)
 
+#txt file named "18_switches"
 IP_LIST = open('18_switches')
 for IP in IP_LIST:
     RTR = {
