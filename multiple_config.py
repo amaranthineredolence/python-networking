@@ -8,7 +8,7 @@ import getpass
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
 def get_username():
-    result = os.popen("name of local computer").read().strip()
+    result = os.popen("whoami").read().strip()
     username = result.split('\\')[-1]
     return username
 
@@ -44,7 +44,7 @@ for switch in list_of_switches:
 
         list_of_commands = ["show run | i hostname", "show ver"]
 
-        with open(f"/home/{local_computer_username}/directory_to_config.txt", "a") as f:
+        with open(f"/home/{local_computer_username}/{directory_to_config.txt}", "a") as f:
             f.write("\n")
             f.write(switch + "#" + str(list_of_commands))
             f.write("\n")
