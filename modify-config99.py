@@ -55,6 +55,7 @@ for switch in list_of_switches:
         list_of_commands = ["show run | i hostname", "show ver"]
 
         with open(f"(/directory to the log file/)", "a") as f:
+            #enter the directory to log file
             f.write("\n")
             f.write(switch + "#" + str(list_of_commands))
             f.write("\n")
