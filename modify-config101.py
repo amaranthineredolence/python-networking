@@ -35,7 +35,7 @@ for switch in list_of_switches:
 
     try:
         # Try connecting with various device types
-        for device_type in ["cisco_ios", "cisco_xe", "cisco_asa"]:
+        for device_type in ["cisco_ios", "cisco_xe", "cisco_asa", "cisco_nxos", "cisco_ftd", "cisco_s200", "cisco_s300", "cisco_tp", "cisco_viptela", "cisco_wlc", "cisco_xr", "dell_dnos9", "dell_force10", "dell_isilon", "dell_os10", "dell_os6", "dell_os9", "dell_powerconnect", "dell_sonic"]:
             network_device["device_type"] = device_type
             connect_to_device = ConnectHandler(**network_device)
             connect_to_device.enable()
