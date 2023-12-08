@@ -1,0 +1,1 @@
+Various Python scripts for bulk configuration in network topologies. Modify-config-autodetect.py can automatically detect os device type. Other modify-config.py files has their own data mapping for device types. Tested in different and various topologies. 
