@@ -17,7 +17,8 @@ def run_script():
     list_of_switches = []
     file_path = file_path_entry.get()
     user = username_entry.get()
-    key_file_path = key_file_path_entry.get()
+    password = password_entry.get()
+    key_file_path = key_file_path_entry.get()  # Added SSH key file path entry
     commands_file_path = commands_file_path_entry.get()
 
     with open(file_path, 'r') as file:
@@ -30,33 +31,37 @@ def run_script():
 
     for switch in list_of_switches:
         network_device = {
-            "device_type": "cisco_ios",
             "host": switch,
             "username": user,
-            "key_file": key_file_path,  # Use key_file for SSH key authentication
+            "password": password,
+            "key_file": key_file_path,  # Added SSH key file path to the network_device dictionary
         }
 
         logging.info(f"Connecting to {switch} with username {user}")
 
         try:
-            connect_to_device = ConnectHandler(**network_device)
-            connect_to_device.enable()
+            # Try connecting with various device types
+            for device_type in ["cisco_ios", "cisco_xe", "cisco_asa", "cisco_nxos", "cisco_ftd", "cisco_s200", "cisco_s300", "cisco_tp", "cisco_viptela", "cisco_wlc", "cisco_xr", "dell_dnos9", "dell_force10", "dell_isilon", "dell_os10", "dell_os6", "dell_os9", "dell_powerconnect", "dell_sonic"]:
+                network_device["device_type"] = device_type
+                connect_to_device = ConnectHandler(**network_device)
+                connect_to_device.enable()
 
-            with open(f"logs/{switch}_log.txt", "a") as f:
-                f.write("\n")
-                f.write(switch + "#" + str(list_of_commands))
-                f.write("\n")
-                for command in list_of_commands:
-                    output = connect_to_device.send_command(command)
-                    f.write(output)
+                with open(f"logs/{switch}_log.txt", "a") as f:
                     f.write("\n")
+                    f.write(switch + "#" + str(list_of_commands))
+                    f.write("\n")
+                    for command in list_of_commands:
+                        output = connect_to_device.send_command(command)
+                        f.write(output)
+                        f.write("\n")
 
-                f.write(switch + "#")
-                f.write("\n" * 3)
-                f.write("\nEND of this device/END of this device/END of this device" * 4)
-                f.write("\n" * 3)
+                    f.write(switch + "#")
+                    f.write("\n" * 3)
+                    f.write("\nEND of this device/END of this device/END of this device" * 4)
+                    f.write("\n" * 3)
 
-            print(f"\nConfiguration saved for {switch}")
+                print(f"\nConfiguration saved for {switch}")
+                break  # Break if successful connection
 
         except Exception as e:
             logging.error(f"Failed to connect to {switch} with error: {str(e)}")
@@ -76,13 +81,6 @@ file_path_entry.pack()
 file_path_button = tk.Button(root, text="Browse", command=lambda: file_path_entry.insert(tk.END, filedialog.askopenfilename()))
 file_path_button.pack()
 
-key_file_path_label = tk.Label(root, text="Enter the path to the private key file:")
-key_file_path_label.pack()
-key_file_path_entry = tk.Entry(root)
-key_file_path_entry.pack()
-key_file_path_button = tk.Button(root, text="Browse", command=lambda: key_file_path_entry.insert(tk.END, filedialog.askopenfilename()))
-key_file_path_button.pack()
-
 commands_file_path_label = tk.Label(root, text="Enter the path to the txt file containing commands:")
 commands_file_path_label.pack()
 commands_file_path_entry = tk.Entry(root)
@@ -90,11 +88,23 @@ commands_file_path_entry.pack()
 commands_file_path_button = tk.Button(root, text="Browse", command=lambda: commands_file_path_entry.insert(tk.END, filedialog.askopenfilename()))
 commands_file_path_button.pack()
 
-# Username
+# Username, Password, and SSH Key file path
 username_label = tk.Label(root, text="What is the username:")
 username_label.pack()
 username_entry = tk.Entry(root)
 username_entry.pack()
+
+password_label = tk.Label(root, text="What is the password:")
+password_label.pack()
+password_entry = tk.Entry(root, show="*")
+password_entry.pack()
+
+key_file_path_label = tk.Label(root, text="Enter the path to the SSH key file (optional):")
+key_file_path_label.pack()
+key_file_path_entry = tk.Entry(root)
+key_file_path_entry.pack()
+key_file_path_button = tk.Button(root, text="Browse", command=lambda: key_file_path_entry.insert(tk.END, filedialog.askopenfilename()))
+key_file_path_button.pack()
 
 # Run button
 run_button = tk.Button(root, text="Run Script", command=run_script)
