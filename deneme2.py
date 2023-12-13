@@ -28,8 +28,8 @@ def run_script():
         list_of_commands = [line.strip() for line in commands_file.readlines()]
 
     logging.info(f"Username: {user}, Switches: {list_of_switches}, Commands: {list_of_commands}")
-
-   for switch in list_of_switches:
+    
+for switch in list_of_switches:
     network_device = {
         "host": switch,
         "username": user,
