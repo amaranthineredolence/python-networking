@@ -29,12 +29,12 @@ def run_script():
 
     logging.info(f"Username: {user}, Switches: {list_of_switches}, Commands: {list_of_commands}")
     
-for switch in list_of_switches:
-    network_device = {
-        "host": switch,
-        "username": user,
-        "password": password,
-        "key_file": key_file_path,  # Added SSH key file path to the network_device dictionary
+    for switch in list_of_switches:
+        network_device = {
+            "host": switch,
+            "username": user,
+            "password": password,
+            "key_file": key_file_path,  # Added SSH key file path to the network_device dictionary
     }
 
     logging.info(f"Connecting to {switch} with username {user}")
