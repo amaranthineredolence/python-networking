@@ -67,7 +67,7 @@ def run_script():
         logging.error(f"Failed to connect to {switch} with error: {str(e)}")
         print(f"\nFailed to connect to {switch}")
 
-print("\nComplete")
+        print("\nFinished")
 
 # GUI setup
 root = tk.Tk()
