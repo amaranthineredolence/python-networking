@@ -3,7 +3,7 @@ import netmiko
 from netmiko import ConnectHandler, SSHDetect
 import logging
 import getpass
-#A network automation tool that uses the Netmiko library to connect to Cisco IOS devices, retrieve specific information, and save the configuration details to a local file.
+#A network automation tool that uses the Netmiko library to connect to network devices, retrieve specific information, and save the configuration details to a local file.
 
 # Configure logging
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
