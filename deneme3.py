@@ -4,6 +4,7 @@ from netmiko import ConnectHandler
 import logging
 import tkinter as tk
 from tkinter import filedialog
+#(PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0) 
 
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
