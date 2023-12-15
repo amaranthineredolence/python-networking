@@ -4,16 +4,20 @@ from netmiko import ConnectHandler
 import logging
 import tkinter as tk
 from tkinter import filedialog
-#(PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0) 
+# (PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0)
 
+# Set up logging configuration
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
 
+# Function to get the current username
 def get_username():
     result = os.popen("whoami").read().strip()
     username = result.split('\\')[-1]
     return username
 
+# Function to run the script
 def run_script():
+    # Initialize variables
     list_of_switches = []
     file_path = file_path_entry.get()
     user = username_entry.get()
@@ -21,14 +25,18 @@ def run_script():
     key_file_path = key_file_path_entry.get()  # Added SSH key file path entry
     commands_file_path = commands_file_path_entry.get()
 
+    # Read IP addresses from the specified file
     with open(file_path, 'r') as file:
         list_of_switches = [line.strip() for line in file.readlines()]
 
+    # Read commands from the specified file
     with open(commands_file_path, 'r') as commands_file:
         list_of_commands = [line.strip() for line in commands_file.readlines()]
 
+    # Log the script parameters
     logging.info(f"Username: {user}, Switches: {list_of_switches}, Commands: {list_of_commands}")
 
+    # Loop through each switch and execute commands
     for switch in list_of_switches:
         network_device = {
             "host": switch,
@@ -54,6 +62,7 @@ def run_script():
                 connect_to_device = ConnectHandler(**network_device)
                 connect_to_device.enable()
 
+                # Open a log file for each switch
                 with open(f"logs/{switch}_log.txt", "a") as f:
                     f.write("\n")
                     f.write(switch + "#" + str(list_of_commands))
