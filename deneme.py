@@ -1,9 +1,9 @@
 import paramiko
 import logging
 from datetime import datetime
-import getpass
 import tkinter as tk
 from tkinter import filedialog
+import getpass
 
 # Configure logging
 logging.basicConfig(filename='script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,24 +45,18 @@ def log_result(ip, username, status, details):
         log_file.write(log_entry)
 
 def run_script():
-    # Read devices and commands from text files
     try:
+        # Prompt user for SSH credentials
+        username = username_entry.get()
+        password = password_entry.get()
+        key_filename = filedialog.askopenfilename(title="Select Private Key File", filetypes=[("Key Files", "*.pem;*.ppk")])
+
+        # Read devices and commands from text files
         devices_file = filedialog.askopenfilename(title="Select Devices File", filetypes=[("Text Files", "*.txt")])
         commands_file = filedialog.askopenfilename(title="Select Commands File", filetypes=[("Text Files", "*.txt")])
 
         devices = [line.split(",") for line in read_file(devices_file)]
         commands = read_file(commands_file)
-
-        # Prompt user for SSH credentials
-        username = username_entry.get()
-        use_key_auth = key_auth_var.get()
-
-        if use_key_auth:
-            key_filename = filedialog.askopenfilename(title="Select Private Key File", filetypes=[("Key Files", "*.pem;*.ppk")])
-            password = None
-        else:
-            key_filename = None
-            password = getpass.getpass("Enter SSH password: ")
 
         # Loop through devices and configure each
         for device_info in devices:
@@ -89,10 +83,9 @@ tk.Label(window, text="SSH Username:").pack()
 username_entry = tk.Entry(window)
 username_entry.pack()
 
-key_auth_var = tk.BooleanVar()
-key_auth_var.set(False)
-
-tk.Checkbutton(window, text="Use SSH Key Authentication", variable=key_auth_var).pack()
+tk.Label(window, text="SSH Password:").pack()
+password_entry = tk.Entry(window, show="*")
+password_entry.pack()
 
 run_button = tk.Button(window, text="Run Script", command=run_script)
 run_button.pack(pady=10)
