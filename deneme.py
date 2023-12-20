@@ -1,97 +1,108 @@
-import paramiko
-import logging
-from datetime import datetime
 import tkinter as tk
 from tkinter import filedialog
-import getpass
+import paramiko
+import logging
+import threading
 
-# Configure logging
-logging.basicConfig(filename='script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def configure_device(ip, username, password, key_filename, commands):
+def configure_device_ssh(ip, username, password=None, key_filename=None, commands=None):
     try:
-        # SSH Connection
+        # Create SSH client
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+        # Connect to the device
         if key_filename:
-            # Use key authentication
-            private_key = paramiko.RSAKey(filename=key_filename)
-            ssh.connect(ip, username=username, pkey=private_key, timeout=10)
+            ssh.connect(ip, username=username, key_filename=key_filename)
         else:
-            # Use password authentication
-            ssh.connect(ip, username=username, password=password, timeout=10)
+            ssh.connect(ip, username=username, password=password)
 
-        # Execute configuration commands
+        # Execute commands
         for command in commands:
             stdin, stdout, stderr = ssh.exec_command(command)
-            result = stdout.read().decode()
-            log_result(ip, username, "Success", f"Command: {command}\nResult: {result}")
-            logging.info(f"Command executed on {ip} ({username}): {command}\nResult: {result}")
+            logging.info(f"Command: {command}\nOutput: {stdout.read().decode()}")
 
         # Close the SSH connection
         ssh.close()
 
+        return True
     except Exception as e:
-        # Log failure details
-        log_result(ip, username, "Failure", str(e))
-        logging.error(f"Failed to execute commands on {ip} ({username}): {str(e)}")
+        logging.error(f"Failed to configure device {ip}: {str(e)}")
+        return False
 
-def log_result(ip, username, status, details):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_entry = f"{timestamp} - {ip} ({username}): {status}\nDetails: {details}\n\n"
+def browse_file_path(entry_widget):
+    file_path = filedialog.askopenfilename()
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, file_path)
 
-    with open("log.txt", "a") as log_file:
-        log_file.write(log_entry)
+def configure_devices():
+    # Read input values from the GUI
+    selected_username = username_entry.get()
+    selected_password = password_entry.get()
+    selected_key_filename = key_filename_entry.get()
+    ip_file_path = ip_file_path_entry.get()
+    commands_file_path = commands_file_path_entry.get()
 
-def run_script():
-    try:
-        # Prompt user for SSH credentials
-        username = username_entry.get()
-        password = password_entry.get()
-        key_filename = filedialog.askopenfilename(title="Select Private Key File", filetypes=[("Key Files", "*.pem;*.ppk")])
+    # Configure logging
+    logging.basicConfig(filename='config_script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-        # Read devices and commands from text files
-        devices_file = filedialog.askopenfilename(title="Select Devices File", filetypes=[("Text Files", "*.txt")])
-        commands_file = filedialog.askopenfilename(title="Select Commands File", filetypes=[("Text Files", "*.txt")])
+    # Read device IPs from file
+    with open(ip_file_path, 'r') as file:
+        device_ips = file.read().splitlines()
 
-        devices = [line.split(",") for line in read_file(devices_file)]
-        commands = read_file(commands_file)
+    # Read commands from file
+    with open(commands_file_path, 'r') as file:
+        commands = file.read().splitlines()
 
-        # Loop through devices and configure each
-        for device_info in devices:
-            ip, _, _ = device_info
-            configure_device(ip, username, password, key_filename, commands)
+    # Configure devices in a separate thread
+    def configure_devices_thread():
+        for ip in device_ips:
+            success = configure_device_ssh(ip, selected_username, password=selected_password, key_filename=selected_key_filename, commands=commands)
+            if success:
+                logging.info(f"Successfully configured device {ip}")
+                update_status(f"Successfully configured device {ip}")
+            else:
+                logging.error(f"Failed to configure device {ip}")
+                update_status(f"Failed to configure device {ip}")
 
-        result_label.config(text="Configuration completed. Check log.txt and script.log for details.")
+    # Start the configuration thread
+    threading.Thread(target=configure_devices_thread).start()
 
-    except Exception as e:
-        result_label.config(text=f"Error: {str(e)}")
+def update_status(message):
+    status_label.config(text=message)
 
-def read_file(file_path):
-    with open(file_path, "r") as file:
-        return [line.strip() for line in file.readlines()]
+# Create the main window
+root = tk.Tk()
+root.title("Network Device Configurator")
 
-# Create main window
-window = tk.Tk()
-window.title("SSH Configuration Script")
+# Create and place widgets
+tk.Label(root, text="Username:").grid(row=0, column=0, sticky=tk.E)
+username_entry = tk.Entry(root)
+username_entry.grid(row=0, column=1)
 
-# Create and pack widgets
-tk.Label(window, text="SSH Configuration Script", font=("Helvetica", 16)).pack(pady=10)
+tk.Label(root, text="Password:").grid(row=1, column=0, sticky=tk.E)
+password_entry = tk.Entry(root, show='*')
+password_entry.grid(row=1, column=1)
 
-tk.Label(window, text="SSH Username:").pack()
-username_entry = tk.Entry(window)
-username_entry.pack()
+tk.Label(root, text="SSH Key File (optional):").grid(row=2, column=0, sticky=tk.E)
+key_filename_entry = tk.Entry(root)
+key_filename_entry.grid(row=2, column=1)
+tk.Button(root, text="Browse", command=lambda: browse_file_path(key_filename_entry)).grid(row=2, column=2)
 
-tk.Label(window, text="SSH Password:").pack()
-password_entry = tk.Entry(window, show="*")
-password_entry.pack()
+tk.Label(root, text="IP File Path:").grid(row=3, column=0, sticky=tk.E)
+ip_file_path_entry = tk.Entry(root)
+ip_file_path_entry.grid(row=3, column=1)
+tk.Button(root, text="Browse", command=lambda: browse_file_path(ip_file_path_entry)).grid(row=3, column=2)
 
-run_button = tk.Button(window, text="Run Script", command=run_script)
-run_button.pack(pady=10)
+tk.Label(root, text="Commands File Path:").grid(row=4, column=0, sticky=tk.E)
+commands_file_path_entry = tk.Entry(root)
+commands_file_path_entry.grid(row=4, column=1)
+tk.Button(root, text="Browse", command=lambda: browse_file_path(commands_file_path_entry)).grid(row=4, column=2)
 
-result_label = tk.Label(window, text="")
-result_label.pack()
+tk.Button(root, text="Configure Devices", command=configure_devices).grid(row=5, column=0, columnspan=3)
 
-# Start the GUI main loop
-window.mainloop()
+# Status label to show configuration progress
+status_label = tk.Label(root, text="")
+status_label.grid(row=6, column=0, columnspan=3)
+
+# Start the Tkinter event loop
+root.mainloop()
