@@ -44,7 +44,7 @@ def run_script():
                 connect_to_device = ConnectHandler(**network_device)
                 connect_to_device.enable()
 
-                with open(f"logs/{switch}_log.txt", "a") as f:
+                with open(f"/home/user/Desktop/log.txt", "a") as f: #edit path to the log.txt file
                     f.write("\n")
                     f.write(switch + "#" + str(list_of_commands))
                     f.write("\n")
