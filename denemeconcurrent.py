@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 from concurrent.futures import ThreadPoolExecutor
 
-# ... (Previous code remains unchanged)
+logging.basicConfig(filename='configurator.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def configure_device(ip, username, password=None, private_key=None, commands=None):
     try:
