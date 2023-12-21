@@ -1,100 +1,127 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 import paramiko
 import threading
 import getpass
 import logging
 
-logging.basicConfig(filename='config_log.txt', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+class NetworkConfiguratorGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Network Configurator")
 
-class NetworkConfigurator:
-    def __init__(self, master):
-        self.master = master
-        self.master.title("Network Device Configurator")
+        self.create_widgets()
 
-        # Variables to store user inputs
-        self.username = tk.StringVar()
-        self.password = tk.StringVar()
-        self.key_path = tk.StringVar()
-        self.device_file_path = tk.StringVar()
-        self.config_commands_file_path = tk.StringVar()
+    def create_widgets(self):
+        # Username
+        self.username_label = ttk.Label(self.root, text="Username:")
+        self.username_entry = ttk.Entry(self.root)
+        self.username_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        self.username_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-        # GUI elements
-        tk.Label(master, text="Username:").grid(row=0, column=0, sticky=tk.W)
-        tk.Entry(master, textvariable=self.username).grid(row=0, column=1, sticky=tk.W)
+        # Password
+        self.password_label = ttk.Label(self.root, text="Password:")
+        self.password_entry = ttk.Entry(self.root, show="*")
+        self.password_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        self.password_entry.grid(row=1, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(master, text="Password:").grid(row=1, column=0, sticky=tk.W)
-        tk.Entry(master, textvariable=self.password, show="*").grid(row=1, column=1, sticky=tk.W)
+        # SSH Key
+        self.ssh_key_label = ttk.Label(self.root, text="SSH Key (path):")
+        self.ssh_key_entry = ttk.Entry(self.root)
+        self.ssh_key_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+        self.ssh_key_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(master, text="SSH Key Path:").grid(row=2, column=0, sticky=tk.W)
-        tk.Entry(master, textvariable=self.key_path).grid(row=2, column=1, sticky=tk.W)
-        tk.Button(master, text="Browse", command=self.browse_key).grid(row=2, column=2, sticky=tk.W)
+        # IP Addresses
+        self.ip_label = ttk.Label(self.root, text="IP Addresses (file):")
+        self.ip_file_entry = ttk.Entry(self.root)
+        self.ip_file_button = ttk.Button(self.root, text="Browse", command=self.browse_ip_file)
+        self.ip_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
+        self.ip_file_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        self.ip_file_button.grid(row=3, column=2, padx=5, pady=5, sticky="w")
 
-        tk.Label(master, text="Device File Path:").grid(row=3, column=0, sticky=tk.W)
-        tk.Entry(master, textvariable=self.device_file_path).grid(row=3, column=1, sticky=tk.W)
-        tk.Button(master, text="Browse", command=self.browse_device_file).grid(row=3, column=2, sticky=tk.W)
+        # Commands
+        self.commands_label = ttk.Label(self.root, text="Commands (file):")
+        self.commands_file_entry = ttk.Entry(self.root)
+        self.commands_file_button = ttk.Button(self.root, text="Browse", command=self.browse_commands_file)
+        self.commands_label.grid(row=4, column=0, padx=5, pady=5, sticky="e")
+        self.commands_file_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
+        self.commands_file_button.grid(row=4, column=2, padx=5, pady=5, sticky="w")
 
-        tk.Label(master, text="Config Commands File Path:").grid(row=4, column=0, sticky=tk.W)
-        tk.Entry(master, textvariable=self.config_commands_file_path).grid(row=4, column=1, sticky=tk.W)
-        tk.Button(master, text="Browse", command=self.browse_config_commands_file).grid(row=4, column=2, sticky=tk.W)
+        # Log
+        self.log_text = tk.Text(self.root, height=10, width=50, state=tk.DISABLED)
+        self.log_text.grid(row=5, column=0, columnspan=3, padx=5, pady=5, sticky="w")
 
-        tk.Button(master, text="Configure Devices", command=self.configure_devices).grid(row=5, column=0, columnspan=3)
+        # Status
+        self.status_label = ttk.Label(self.root, text="Status:")
+        self.status_label.grid(row=6, column=0, padx=5, pady=5, sticky="e")
 
-    def browse_key(self):
-        key_path = filedialog.askopenfilename(filetypes=[("SSH Key Files", "*.pem;*.key")])
-        if key_path:
-            self.key_path.set(key_path)
+        # Run Button
+        self.run_button = ttk.Button(self.root, text="Run", command=self.run_config)
+        self.run_button.grid(row=6, column=1, columnspan=2, padx=5, pady=5, sticky="w")
 
-    def browse_device_file(self):
-        device_file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
-        if device_file_path:
-            self.device_file_path.set(device_file_path)
+    def browse_ip_file(self):
+        filename = filedialog.askopenfilename()
+        self.ip_file_entry.delete(0, tk.END)
+        self.ip_file_entry.insert(0, filename)
 
-    def browse_config_commands_file(self):
-        config_commands_file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
-        if config_commands_file_path:
-            self.config_commands_file_path.set(config_commands_file_path)
+    def browse_commands_file(self):
+        filename = filedialog.askopenfilename()
+        self.commands_file_entry.delete(0, tk.END)
+        self.commands_file_entry.insert(0, filename)
 
-    def configure_devices(self):
-        username = self.username.get()
-        password = self.password.get()
-        key_path = self.key_path.get()
-        device_file_path = self.device_file_path.get()
-        config_commands_file_path = self.config_commands_file_path.get()
+    def run_config(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        ssh_key = self.ssh_key_entry.get()
+        ip_filename = self.ip_file_entry.get()
+        commands_filename = self.commands_file_entry.get()
 
-        try:
-            with open(device_file_path, 'r') as device_file:
-                devices = device_file.read().splitlines()
+        self.log_text.config(state=tk.NORMAL)
+        self.log_text.delete(1.0, tk.END)
 
-            with open(config_commands_file_path, 'r') as commands_file:
-                commands = commands_file.read().splitlines()
+        logging.basicConfig(filename='log.txt', level=logging.INFO)
 
-            for device in devices:
-                try:
-                    ssh = paramiko.SSHClient()
-                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        def process_device(ip):
+            try:
+                client = paramiko.SSHClient()
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                
+                if ssh_key:
+                    private_key = paramiko.RSAKey(filename=ssh_key)
+                    client.connect(ip, username=username, pkey=private_key)
+                else:
+                    client.connect(ip, username=username, password=password)
 
-                    if key_path:
-                        private_key = paramiko.RSAKey(filename=key_path)
-                        ssh.connect(device, username=username, pkey=private_key)
-                    else:
-                        ssh.connect(device, username=username, password=password)
-
+                with open(commands_filename, 'r') as commands_file:
+                    commands = commands_file.readlines()
                     for command in commands:
-                        stdin, stdout, stderr = ssh.exec_command(command)
-                        logging.info(f"Device: {device}, Command: {command}, Status: Success")
+                        stdin, stdout, stderr = client.exec_command(command)
+                        logging.info(f"Device {ip}: {command.strip()} - Success")
 
-                    ssh.close()
+                client.close()
+                self.log_text.insert(tk.END, f"Device {ip}: Configuration successful\n")
+            except Exception as e:
+                logging.error(f"Device {ip}: {str(e)}")
+                self.log_text.insert(tk.END, f"Device {ip}: Configuration failed - {str(e)}\n")
 
-                except Exception as e:
-                    logging.error(f"Device: {device}, Error: {str(e)}")
-                    continue
+        with open(ip_filename, 'r') as ip_file:
+            ip_addresses = ip_file.readlines()
 
-        except Exception as e:
-            logging.error(f"Error: {str(e)}")
+        threads = []
+        for ip in ip_addresses:
+            ip = ip.strip()
+            thread = threading.Thread(target=process_device, args=(ip,))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        self.log_text.config(state=tk.DISABLED)
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = NetworkConfigurator(root)
+    app = NetworkConfiguratorGUI(root)
     root.mainloop()
