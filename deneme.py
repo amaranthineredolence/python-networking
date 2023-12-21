@@ -1,108 +1,98 @@
 import tkinter as tk
 from tkinter import filedialog
 import paramiko
+import getpass
 import logging
-import threading
 
-def configure_device_ssh(ip, username, password=None, key_filename=None, commands=None):
-    try:
-        # Create SSH client
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+class NetworkConfigurator:
+    def __init__(self, master):
+        self.master = master
+        master.title("Network Device Configurator")
 
-        # Connect to the device
-        if key_filename:
-            ssh.connect(ip, username=username, key_filename=key_filename)
-        else:
-            ssh.connect(ip, username=username, password=password)
+        self.username_label = tk.Label(master, text="Username:")
+        self.username_label.grid(row=0, column=0)
+        self.username_entry = tk.Entry(master)
+        self.username_entry.grid(row=0, column=1)
 
-        # Execute commands
-        for command in commands:
-            stdin, stdout, stderr = ssh.exec_command(command)
-            logging.info(f"Command: {command}\nOutput: {stdout.read().decode()}")
+        self.password_label = tk.Label(master, text="Password:")
+        self.password_label.grid(row=1, column=0)
+        self.password_entry = tk.Entry(master, show="*")
+        self.password_entry.grid(row=1, column=1)
 
-        # Close the SSH connection
-        ssh.close()
+        self.key_label = tk.Label(master, text="SSH Key (optional):")
+        self.key_label.grid(row=2, column=0)
+        self.key_entry = tk.Entry(master)
+        self.key_entry.grid(row=2, column=1)
 
-        return True
-    except Exception as e:
-        logging.error(f"Failed to configure device {ip}: {str(e)}")
-        return False
+        self.key_button = tk.Button(master, text="Browse", command=self.browse_ssh_key)
+        self.key_button.grid(row=2, column=2)
 
-def browse_file_path(entry_widget):
-    file_path = filedialog.askopenfilename()
-    entry_widget.delete(0, tk.END)
-    entry_widget.insert(0, file_path)
+        self.file_label = tk.Label(master, text="Devices and Commands File:")
+        self.file_label.grid(row=3, column=0)
+        self.file_entry = tk.Entry(master)
+        self.file_entry.grid(row=3, column=1)
 
-def configure_devices():
-    # Read input values from the GUI
-    selected_username = username_entry.get()
-    selected_password = password_entry.get()
-    selected_key_filename = key_filename_entry.get()
-    ip_file_path = ip_file_path_entry.get()
-    commands_file_path = commands_file_path_entry.get()
+        self.file_button = tk.Button(master, text="Browse", command=self.browse_file)
+        self.file_button.grid(row=3, column=2)
 
-    # Configure logging
-    logging.basicConfig(filename='config_script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.run_button = tk.Button(master, text="Run Configuration", command=self.run_configuration)
+        self.run_button.grid(row=4, column=1)
 
-    # Read device IPs from file
-    with open(ip_file_path, 'r') as file:
-        device_ips = file.read().splitlines()
+        # Set up logging
+        logging.basicConfig(filename="configurator_log.txt", level=logging.INFO,
+                            format="%(asctime)s - %(levelname)s - %(message)s")
 
-    # Read commands from file
-    with open(commands_file_path, 'r') as file:
-        commands = file.read().splitlines()
+    def browse_ssh_key(self):
+        ssh_key_path = filedialog.askopenfilename(title="Select SSH Key File")
+        self.key_entry.delete(0, tk.END)
+        self.key_entry.insert(0, ssh_key_path)
 
-    # Configure devices in a separate thread
-    def configure_devices_thread():
-        for ip in device_ips:
-            success = configure_device_ssh(ip, selected_username, password=selected_password, key_filename=selected_key_filename, commands=commands)
-            if success:
-                logging.info(f"Successfully configured device {ip}")
-                update_status(f"Successfully configured device {ip}")
-            else:
-                logging.error(f"Failed to configure device {ip}")
-                update_status(f"Failed to configure device {ip}")
+    def browse_file(self):
+        file_path = filedialog.askopenfilename(title="Select Devices and Commands File")
+        self.file_entry.delete(0, tk.END)
+        self.file_entry.insert(0, file_path)
 
-    # Start the configuration thread
-    threading.Thread(target=configure_devices_thread).start()
+    def run_configuration(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        ssh_key_path = self.key_entry.get()
+        devices_file_path = self.file_entry.get()
 
-def update_status(message):
-    status_label.config(text=message)
+        try:
+            with open(devices_file_path, 'r') as file:
+                devices_and_commands = [line.strip().split() for line in file.readlines()]
 
-# Create the main window
-root = tk.Tk()
-root.title("Network Device Configurator")
+            for device_info in devices_and_commands:
+                ip_address = device_info[0]
+                commands = device_info[1:]
 
-# Create and place widgets
-tk.Label(root, text="Username:").grid(row=0, column=0, sticky=tk.E)
-username_entry = tk.Entry(root)
-username_entry.grid(row=0, column=1)
+                try:
+                    ssh = paramiko.SSHClient()
+                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-tk.Label(root, text="Password:").grid(row=1, column=0, sticky=tk.E)
-password_entry = tk.Entry(root, show='*')
-password_entry.grid(row=1, column=1)
+                    if ssh_key_path:
+                        private_key = paramiko.RSAKey(filename=ssh_key_path)
+                        ssh.connect(ip_address, username=username, pkey=private_key)
+                    else:
+                        ssh.connect(ip_address, username=username, password=password)
 
-tk.Label(root, text="SSH Key File (optional):").grid(row=2, column=0, sticky=tk.E)
-key_filename_entry = tk.Entry(root)
-key_filename_entry.grid(row=2, column=1)
-tk.Button(root, text="Browse", command=lambda: browse_file_path(key_filename_entry)).grid(row=2, column=2)
+                    for command in commands:
+                        stdin, stdout, stderr = ssh.exec_command(command)
+                        logging.info(f"Device {ip_address} - Command: {command} - Status: {stdout.channel.recv_exit_status()}")
 
-tk.Label(root, text="IP File Path:").grid(row=3, column=0, sticky=tk.E)
-ip_file_path_entry = tk.Entry(root)
-ip_file_path_entry.grid(row=3, column=1)
-tk.Button(root, text="Browse", command=lambda: browse_file_path(ip_file_path_entry)).grid(row=3, column=2)
+                    logging.info(f"Configuration completed for device {ip_address}")
+                except Exception as e:
+                    logging.error(f"Failed to configure device {ip_address}. Error: {str(e)}")
+                finally:
+                    if ssh:
+                        ssh.close()
 
-tk.Label(root, text="Commands File Path:").grid(row=4, column=0, sticky=tk.E)
-commands_file_path_entry = tk.Entry(root)
-commands_file_path_entry.grid(row=4, column=1)
-tk.Button(root, text="Browse", command=lambda: browse_file_path(commands_file_path_entry)).grid(row=4, column=2)
+            logging.info("Configuration process completed.")
+        except Exception as e:
+            logging.error(f"Failed to read devices and commands file. Error: {str(e)}")
 
-tk.Button(root, text="Configure Devices", command=configure_devices).grid(row=5, column=0, columnspan=3)
 
-# Status label to show configuration progress
-status_label = tk.Label(root, text="")
-status_label.grid(row=6, column=0, columnspan=3)
-
-# Start the Tkinter event loop
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = NetworkConfigurator(root)
+    root.mainloop()
