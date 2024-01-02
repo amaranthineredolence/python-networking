@@ -4,7 +4,6 @@ from netmiko import ConnectHandler
 import logging
 import tkinter as tk
 from tkinter import filedialog
-# (PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0)
 
 # Set up logging configuration
 logging.basicConfig(filename='script_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')
@@ -69,7 +68,11 @@ def run_script():
                     f.write("\n")
 
                     # Use send_config_set for sending configuration changes
-                    output = connect_to_device.send_config_set(list_of_commands + [''])  # Add an empty string to simulate Enter key press
+                    output = connect_to_device.send_config_set(list_of_commands)
+
+                    # Send Enter key press command
+                    output += connect_to_device.send_command_timing("\n")
+
                     f.write(output)
 
                     f.write(switch + "#")
