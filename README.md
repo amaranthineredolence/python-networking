@@ -11,9 +11,12 @@ intervention can be provided.
 (PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0)
 Versions should be like this to make a bulk configration via ssh-key auth. 
 
-![2](https://github.com/amaranthineredolence/python-networking/assets/66516780/81e416cd-ab5d-4398-b2c8-19f152733553)
+![asd](https://github.com/amaranthineredolence/python-networking/assets/66516780/7248763e-2139-4fd2-bde4-47434d52ee32)
 
 ![1](https://github.com/amaranthineredolence/python-networking/assets/66516780/42e66e2d-88cc-4451-aefd-f5254c2adf85)
 
-![asd](https://github.com/amaranthineredolence/python-networking/assets/66516780/7248763e-2139-4fd2-bde4-47434d52ee32)
+![2](https://github.com/amaranthineredolence/python-networking/assets/66516780/81e416cd-ab5d-4398-b2c8-19f152733553)
+
+
+
 
