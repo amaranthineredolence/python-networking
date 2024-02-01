@@ -1,4 +1,14 @@
-Various Python scripts for bulk configuration in network topologies. Modify-config-autodetect.py can automatically detect os device type. Other modify-config.py files has their own data mapping for device types. Tested in different and various topologies. 
+Various Python scripts that can be used by network administrators or anyone who has authority over
+the network to make configuration updates for topologies with a large number of devices.
+This script, which has a simple GUI, uses an SSH connection to provide device
+configurations. There are 2 optional selections for verifying the SSH connection. Username-
+Password or ssh-key based authentication. Thanks to 2 different log files exported when the
+script is run, the working stages of the script can be observed both on the device CLI and the
+information transferred to the logging module.In case of any possible problem, instant
+intervention can be provided.
+
 
 (PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0)
 Versions should be like this to make a bulk configration via ssh-key auth. 
+
+
