@@ -1,4 +1,4 @@
-Various Python scripts that can be used by network administrators or anyone who has authority over
+<img width="746" alt="2" src="https://github.com/user-attachments/assets/93795160-44fa-42bd-9a7c-14d7358ddb9e">Various Python scripts that can be used by network administrators or anyone who has authority over
 the network to make configuration updates for topologies with a large number of devices.
 This script, which has a simple GUI, uses an SSH connection to provide device
 configurations. There are 2 optional selections for verifying the SSH connection. Username-
@@ -11,11 +11,15 @@ intervention can be provided.
 (PARAMIKO VERSION 2.8.1/ NETMIKO VERSION 3.4.0)
 Versions should be like this to make a bulk configration via ssh-key auth. 
 
-![asd](https://github.com/amaranthineredolence/python-networking/assets/66516780/7248763e-2139-4fd2-bde4-47434d52ee32)
 
-![1](https://github.com/amaranthineredolence/python-networking/assets/66516780/42e66e2d-88cc-4451-aefd-f5254c2adf85)
+<img width="748" alt="1" src="https://github.com/user-attachments/assets/bb050d43-f10a-4969-8c18-621c6eaf721e">
 
-![2](https://github.com/amaranthineredolence/python-networking/assets/66516780/81e416cd-ab5d-4398-b2c8-19f152733553)
+<img width="746" alt="2" src="https://github.com/user-attachments/assets/9fe1fa34-642f-441c-9bbb-6c67b789d46a">
+
+<img width="751" alt="3" src="https://github.com/user-attachments/assets/a95e6f8b-1e6c-407b-965f-9e6f8772df26">
+
+
+
 
 
 
