@@ -1,4 +1,4 @@
-<img width="746" alt="2" src="https://github.com/user-attachments/assets/93795160-44fa-42bd-9a7c-14d7358ddb9e">Various Python scripts that can be used by network administrators or anyone who has authority over
+  Various Python scripts that can be used by network administrators or anyone who has authority over
 the network to make configuration updates for topologies with a large number of devices.
 This script, which has a simple GUI, uses an SSH connection to provide device
 configurations. There are 2 optional selections for verifying the SSH connection. Username-
